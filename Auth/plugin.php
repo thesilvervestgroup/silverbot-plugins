@@ -3,11 +3,12 @@
 class Auth extends SilverBotPlugin {
 	public $trigger = '~';
 	public $accounts = array();
-	private $db = 'sqlite:auth.db';
+	private $db = '';
 	private $dbh; // for the PDO connection
 	
 	// init the db and load users
 	public function __construct() {
+		$this->db = "sqlite:".__DIR__."/auth.db"; // create the auth.db file inside the plugin dir
 		$this->dbh = new PDO($this->db, '', '');
 
 		$result = $this->dbh->query("SELECT name FROM sqlite_master WHERE type='table' AND name='users'");
@@ -44,6 +45,10 @@ class Auth extends SilverBotPlugin {
 		if (!empty($result)) foreach ($result as $row) {
 			$this->accounts[$row['name']] = $row['hostmask'];
 		}
+	}
+
+	private function countUsers() {
+		return count($this->accounts);
 	}
 	
 	public function prv_adduser($data) {
@@ -85,6 +90,18 @@ class Auth extends SilverBotPlugin {
 			$this->bot->reply("Hostmask for '{$params[0]}' updated to '{$params[1]}!");
 
 			$this->refreshUsers();
+		}
+	}
+
+	// this function takes 'ownership' of the bot
+	// you need to have set your nickname in the config.ini file
+	// and trigger it as soon as the bot comes online the first time
+	// with ~hello your!user@mask
+	public function prv_hello($data) {
+		if (count($this->accounts) == 0 && $data['source'] == $this->config['owner'] && !empty($data['data'])) {
+			$this->addUser($data['source'], $data['data']);
+			$this->refreshUsers();
+			$this->bot->reply('MASTER, I AM HERE TO SERVE YOU.');
 		}
 	}
 	
