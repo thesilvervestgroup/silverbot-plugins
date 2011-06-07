@@ -10,7 +10,6 @@ class Channel extends SilverBotPlugin {
 	}
 	
 	public function pub_join($data) {
-		print_r($data);
 		if ($this->bot->Auth->hasAccess($data['user_host']) && substr($data['data'], 0, 1) == '#') {
 			$this->join($data['data']);
 		}
