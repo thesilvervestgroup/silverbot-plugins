@@ -5,7 +5,7 @@ class Channel extends SilverBotPlugin {
 	public $channels = array();
 	
 	public function onConnect() {
-		foreach ($this->config['channels'] as $channel)
+		foreach ($this->config['autojoin'] as $channel)
 			$this->join($channel);
 	}
 	
