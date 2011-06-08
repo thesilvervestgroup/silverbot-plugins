@@ -8,7 +8,7 @@ class Auth extends SilverBotPlugin {
 	
 	// init the db and load users
 	public function __construct() {
-		$this->db = "sqlite:".__DIR__."/auth.db"; // create the auth.db file inside the plugin dir
+		$this->db = "sqlite:".$this->getDataDirectory()."auth.db"; // create the auth.db file inside the plugin dir
 		$this->dbh = new PDO($this->db, '', '');
 
 		$result = $this->dbh->query("SELECT name FROM sqlite_master WHERE type='table' AND name='users'");
