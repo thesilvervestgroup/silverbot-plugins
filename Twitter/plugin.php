@@ -25,16 +25,6 @@ class Twitter extends SilverBotPlugin {
 		$tweet = $data[0];
 		return $tweet->text;
 	}
-
-	private function curlGet($url) {
-		$ch = curl_init();
-		curl_setopt($ch, CURLOPT_URL, $url);
-		curl_setopt($ch, CURLOPT_HEADER, false);
-		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-		$output = curl_exec($ch);
-		curl_close($ch);
-		return $output;
-	}
 	
 }
 
