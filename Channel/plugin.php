@@ -9,6 +9,18 @@ class Channel extends SilverBotPlugin {
 			$this->join($channel);
 	}
 	
+	public function onDisconnect() {
+		$this->channels = array(); // clear the array so we can connect on reconnect
+	}
+	
+	public function onKick($data) {
+		if ($data['kicked'] == $this->bot->nickname) { // bot was kicked
+			unset($this->channels[$data['source']]);
+			if ($this->config['rejoin_on_kick'] == true)
+				$this->join($data['source']);
+		}
+	}
+	
 	public function pub_join($data) {
 		if ($this->bot->Auth->hasAccess($data['user_host']) && substr($data['data'], 0, 1) == '#') {
 			$this->join($data['data']);
