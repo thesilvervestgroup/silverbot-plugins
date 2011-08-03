@@ -34,5 +34,26 @@ class Utility extends SilverBotPlugin {
 		$this->pub_timestamp($data);
 	}
 	
+	/**
+	 * Generates a "random" password
+	 * @int minimum length - default 8
+	 * @int maximum length - default 8
+	 */
+	public function pub_randpw($data) {
+		$bits = explode(' ', $data['data']);
+		$min = $max = 8;
+		if (!empty($bits[0]) && is_numeric($bits[0]) && $bits[0] > 0 && $bits[0] < 1025) $min = $bits[0];
+		if (!empty($bits[1]) && is_numeric($bits[0]) && $bits[1] > 0 && $bits[1] < 1025 && $bits[1] >= $min) $max = $bits[1];
+		if ($min > $max) $max = $min;
+		
+		$chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890-=_+<>?@#^&';
+		$length = mt_rand($min, $max);
+		$output = '';
+		for ($i = 0; $i < $length; $i++) {
+			$output .= $chars[(mt_rand() % strlen($chars))];
+		}
+		
+		$this->bot->reply($output);
+	}
 }
 
