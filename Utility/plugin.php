@@ -55,5 +55,36 @@ class Utility extends SilverBotPlugin {
 		
 		$this->bot->reply($output);
 	}
+	
+	/**
+	 * Performs a DNS lookup, either addr to name or name to addr
+	 * @string lookup
+	 */
+	public function pub_dns($data) {
+		if (empty($data['data'])) return;
+		if (ip2long($data['data']) === false) { // not an IP
+			$list = gethostbynamel($data['data'])
+			$this->bot->reply($data['username'] . ': ' . $data['data'] . ' resolves to \'' . join(', ', $list) . '\'');
+		} else {
+			$this->bot->reply($data['username'] . ': ' . $data['data'] . ' resolves to \'' . gethostbyaddr($data['data']) . '\'');
+		}
+	}
+	
+	/**
+	 * Perform a Base64 encode
+	 * @string data
+	 */
+	public function pub_base64($data) {
+		$this->bot->reply($data['username'] . ': ' . base64_encode($data['data']));
+	}
+	
+	/**
+	 * Perform a Base64 decode
+	 * @string data
+	 */
+	public function pub_unbase64($data) {
+		$this->bot->reply($data['username'] . ': ' . base64_decode($data['data']));
+	}
+	
 }
 
