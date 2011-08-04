@@ -63,7 +63,7 @@ class Utility extends SilverBotPlugin {
 	public function pub_dns($data) {
 		if (empty($data['data'])) return;
 		if (ip2long($data['data']) === false) { // not an IP
-			$list = gethostbynamel($data['data'])
+			$list = gethostbynamel($data['data']);
 			$this->bot->reply($data['username'] . ': ' . $data['data'] . ' resolves to \'' . join(', ', $list) . '\'');
 		} else {
 			$this->bot->reply($data['username'] . ': ' . $data['data'] . ' resolves to \'' . gethostbyaddr($data['data']) . '\'');
