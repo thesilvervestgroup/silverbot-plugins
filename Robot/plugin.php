@@ -12,16 +12,20 @@ class Robot extends SilverBotPlugin {
 		$this->savemtime = $stat['mtime'];
 	}
 
-	public function chan($data) {
+	public function chn($data) {
 		$regex = '#\b(([\w-]+://?|www[.])[^\s()<>]+(?:\([\w\d]+\)|([^[:punct:]\s]|/)))#';
-		if (preg_match($regex, $data['text'], $matches) !== false) {
+		if (preg_match($regex, $data['text'], $matches)) {
 			$url = $matches[1];
 			// url was found
 			if (@isset($this->data['urls'][$url])) {
+				$info = $this->data['urls'][$url];
+				$diff = time() - $info['w'];
+				$str = "ROBOT (".$this->ago($diff)." by " . $info['u'] . ")";
 				// roboto
-				$this->bot->reply('ROBOT');
+				$this->bot->reply($str);
 			} else {
-				$this->data['urls'][$url] = time();
+				$this->data['urls'][$url]['w'] = time();
+				$this->data['urls'][$url]['u'] = $data['username'];
 			}
 		}
 
@@ -48,5 +52,20 @@ class Robot extends SilverBotPlugin {
 			$this->reset(); // we wanna init the data file if we can't find it
 	}
 
+	private function ago($timestamp)
+	{
+		$difference = $timestamp;
+		
+		$periods = array("s", "m", "h", "d", "w", "m", "y", "d");
+		$lengths = array("60","60","24","7","4.35","12","10");
+		for($j = 0; $difference >= $lengths[$j]; $j++)
+		{
+			$difference /= $lengths[$j];
+		}
+		
+		$difference = round($difference);		
+		$text = "$difference $periods[$j] ago";
+		return $text;
+	}
 }
 
