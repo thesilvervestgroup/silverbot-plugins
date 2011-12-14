@@ -33,6 +33,59 @@ class Robot extends SilverBotPlugin {
 		if ((time() - $this->savemtime) > 300)
 			$this->save();
 	}
+	
+	public function pub_link($data) {
+		$s = $data['data'];
+
+		// make it regex'd
+		$from = array('0','1','2','3','4','5','6','7','8','9',' ');
+		$to = array('(0|zero)','(1|one)','(2|two)','(3|three)','(4|four)','(5|five)','(6|six)','(7|seven)','(8|eight)','(9|nine)','.*');
+		$s = str_replace($from, $to, $s);
+		$s = '/.*' . $s . '.*/i';
+		
+		$links = array_keys($this->data['urls']);
+		$matched = array();
+		foreach ($links as $link) {
+			if (preg_match($s, $link, $matches) == true) {
+				$matched[] = $link;
+			}
+		}
+		
+		if (count($matched)) {
+			$this->bot->reply("Most recent links matching '{$data['data']}'");
+			foreach ($matched as $url) {
+				$times[$url] = $this->data['urls'][$url]['w'];
+			}
+			
+			arsort($times);
+			$count = 1;
+			foreach ($times as $url=>$time) {
+				if ($count == 4) break;
+				$this->bot->reply("$count: $url");
+				$count++;
+			}
+			
+		}
+	}
+	
+	public function chn_linkstat($data) {
+		$users = array();
+		$links = $oldest = 0;
+	
+		foreach ($this->data['urls'] as $url) {	
+			if ($oldest == 0) $oldest = $url['w'];
+			$users[$url['u']]++;
+			$links++;
+			if ($url['w'] < $oldest) $oldest = $url['w'];
+		}
+		
+		arsort($users);
+		$most_user = current(array_flip($users));
+		$most_links = current($users);
+		
+		$this->bot->reply("Number of links in ROBOT cache: $links");
+		$this->bot->reply("$most_user has submitted the most links with $most_links");
+	}			
 
 	private function reset() {
 		unset($this->data);
