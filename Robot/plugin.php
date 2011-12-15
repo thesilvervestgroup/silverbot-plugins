@@ -4,6 +4,7 @@ class Robot extends SilverBotPlugin {
 
 	private $data = array();
 	private $dataFile = '';
+	private $muted = array();
 
 	public function __construct() {
 		$this->dataFile = $this->getDataDirectory() . 'savedata.db';
@@ -22,7 +23,8 @@ class Robot extends SilverBotPlugin {
 				$diff = time() - $info['w'];
 				$str = "ROBOT (".$this->ago($diff)." by " . $info['u'] . ")";
 				// roboto
-				$this->bot->reply($str);
+				if (!isset($this->data['muted'][$data['source']]) || $this->data['muted'][$data['source']] != true)
+					$this->bot->reply($str);
 			} else {
 				$this->data['urls'][$url]['w'] = time();
 				$this->data['urls'][$url]['u'] = $data['username'];
@@ -32,6 +34,43 @@ class Robot extends SilverBotPlugin {
 		// auto-save after five minutes worth of chat (minimum, might be more depending on time between messages)
 		if ((time() - $this->savemtime) > 300)
 			$this->save();
+	}
+	
+	public function chn_robot($data) {
+		switch (trim(strtolower($data['data']))) {
+			case 'off':
+				$this->data['muted'][$data['source']] = true;
+				$this->save();
+				$this->bot->reply("Muted ROBOT for {$data['source']}");
+				break;
+				
+			case 'on':
+				$this->data['muted'][$data['source']] = false;
+				$this->save();
+				$this->bot->reply("Now ROBOT'ing for {$data['source']}");
+				break;
+				
+			case 'stat':
+			case 'stats':
+			case 'status':
+				$users = array();
+				$links = $oldest = 0;
+			
+				foreach ($this->data['urls'] as $url) {	
+					if ($oldest == 0) $oldest = $url['w'];
+					$users[$url['u']]++;
+					$links++;
+					if ($url['w'] < $oldest) $oldest = $url['w'];
+				}
+				
+				arsort($users);
+				$most_user = current(array_flip($users));
+				$most_links = current($users);
+				
+				$this->bot->reply("Number of links in ROBOT cache: $links");
+				$this->bot->reply("$most_user has submitted the most links with $most_links");
+				break;
+		}
 	}
 	
 	public function pub_link($data) {
@@ -65,27 +104,10 @@ class Robot extends SilverBotPlugin {
 				$count++;
 			}
 			
+		} else {
+			$this->bot->reply("No links found matching '{$data['data']}'");
 		}
-	}
-	
-	public function chn_linkstat($data) {
-		$users = array();
-		$links = $oldest = 0;
-	
-		foreach ($this->data['urls'] as $url) {	
-			if ($oldest == 0) $oldest = $url['w'];
-			$users[$url['u']]++;
-			$links++;
-			if ($url['w'] < $oldest) $oldest = $url['w'];
-		}
-		
-		arsort($users);
-		$most_user = current(array_flip($users));
-		$most_links = current($users);
-		
-		$this->bot->reply("Number of links in ROBOT cache: $links");
-		$this->bot->reply("$most_user has submitted the most links with $most_links");
-	}			
+	}	
 
 	private function reset() {
 		unset($this->data);
