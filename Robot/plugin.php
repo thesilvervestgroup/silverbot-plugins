@@ -77,8 +77,8 @@ class Robot extends SilverBotPlugin {
 		$s = $data['data'];
 
 		// make it regex'd
-		$from = array('0','1','2','3','4','5','6','7','8','9',' ');
-		$to = array('(0|zero)','(1|one)','(2|two)','(3|three)','(4|four)','(5|five)','(6|six)','(7|seven)','(8|eight)','(9|nine)','.*');
+		$from = array('0','1','2','3','4','5','6','7','8','9','/','+','*','.','$','^',' ');
+		$to = array('(0|zero)','(1|one)','(2|two)','(3|three)','(4|four)','(5|five)','(6|six)','(7|seven)','(8|eight)','(9|nine)','\/','\+','\*','\.','\$','\^','.*');
 		$s = str_replace($from, $to, $s);
 		$s = '/.*' . $s . '.*/i';
 		
@@ -100,7 +100,9 @@ class Robot extends SilverBotPlugin {
 			$count = 1;
 			foreach ($times as $url=>$time) {
 				if ($count == 4) break;
-				$this->bot->reply("$count: $url");
+				$who = $this->data['urls'][$url]['u'];
+				$when = $this->ago(time() - $time);
+				$this->bot->reply("$who, $when: $url");
 				$count++;
 			}
 			
