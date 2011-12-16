@@ -37,7 +37,26 @@ class Robot extends SilverBotPlugin {
 	}
 	
 	public function chn_robot($data) {
-		switch (trim(strtolower($data['data']))) {
+		list($cmd, $info) = explode(' ', trim(strtolower($data['data'])), 2);
+		switch ($cmd) {
+			case 'domstat':
+			case 'domstats':
+				$domains = array();
+				foreach ($this->data['urls'] as $url=>$urldata) {
+					$url = parse_url($url);
+					$domains[$url['host']]++;
+				}
+				
+				arsort($domains);
+				$this->bot->reply('Number of unique domains in ROBOT cache: ' . count($domains));
+				$this->bot->reply("Top three domains:");
+				$count = 0;
+				foreach($domains as $domain=>$hits) {
+					$this->bot->reply("'$domain' with $hits");
+					if (++$count == 3) break;
+				}
+				break;
+				
 			case 'off':
 				$this->data['muted'][$data['source']] = true;
 				$this->save();
@@ -48,6 +67,12 @@ class Robot extends SilverBotPlugin {
 				$this->data['muted'][$data['source']] = false;
 				$this->save();
 				$this->bot->reply("Now ROBOT'ing for {$data['source']}");
+				break;
+			
+			case 'find':
+			case 'link':
+			case 'search':
+				$this->pub_link(array('data' => $info));
 				break;
 				
 			case 'stat':
@@ -99,11 +124,10 @@ class Robot extends SilverBotPlugin {
 			arsort($times);
 			$count = 1;
 			foreach ($times as $url=>$time) {
-				if ($count == 4) break;
 				$who = $this->data['urls'][$url]['u'];
 				$when = $this->ago(time() - $time);
 				$this->bot->reply("$who, $when: $url");
-				$count++;
+				if (++$count == 4) break;
 			}
 			
 		} else {
