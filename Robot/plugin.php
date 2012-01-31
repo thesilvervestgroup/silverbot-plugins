@@ -78,22 +78,39 @@ class Robot extends SilverBotPlugin {
 			case 'stat':
 			case 'stats':
 			case 'status':
-				$users = array();
+				$users = $domains = array();
 				$links = $oldest = 0;
 			
-				foreach ($this->data['urls'] as $url) {	
+				foreach ($this->data['urls'] as $u=>$url) {	
 					if ($oldest == 0) $oldest = $url['w'];
 					$users[$url['u']]++;
+					$u = parse_url($u);
+					$domains[$url['u']][$u['host']]++;
 					$links++;
 					if ($url['w'] < $oldest) $oldest = $url['w'];
 				}
 				
-				arsort($users);
-				$most_user = current(array_flip($users));
-				$most_links = current($users);
+				if (strlen($info)) { // stats for a user
+					$user = trim($info);
+					if (!empty($users[$user])) {
+						arsort($domains[$user]);
+						$this->bot->reply("$user has submitted {$users[$user]} links spread across " . count($domains[$user]) . " domains");
+						$this->bot->reply("Top three domains:");
+						foreach($domains[$user] as $domain=>$hits) {
+							$this->bot->reply("'$domain' with $hits");
+							if (++$count == 3) break;
+						}
+					} else {
+						$this->bot->reply("Can't find $user in ROBOT cache");
+					}
+				} else {
+					arsort($users);
+					$most_user = current(array_flip($users));
+					$most_links = current($users);
 				
-				$this->bot->reply("Number of links in ROBOT cache: $links");
-				$this->bot->reply("$most_user has submitted the most links with $most_links");
+					$this->bot->reply("Number of links in ROBOT cache: $links");
+					$this->bot->reply("$most_user has submitted the most links with $most_links");
+				}
 				break;
 		}
 	}
@@ -133,8 +150,26 @@ class Robot extends SilverBotPlugin {
 		} else {
 			$this->bot->reply("No links found matching '{$data['data']}'");
 		}
-	}	
-
+	}
+	
+	public function pub_links($data) {
+		$links = array();
+		$oldest = 0;
+		$from = time() - 86400; // rolling 24 hour window
+		
+		foreach ($this->data['urls'] as $url=>$urldata) {
+			if ($urldata['w'] < $from) continue;
+			if ($oldest == 0) $oldest = $urldata['w'];
+			$links[$urldata['w']] = $url;
+			if ($urldata['w'] < $oldest) $oldest = $urldata['w'];
+		}
+		
+		$links = array_unique($links);
+		foreach ($links as $link) {
+			$this->bot->pm($data['username'], $link);
+		}
+	}
+	
 	private function reset() {
 		unset($this->data);
 		$this->data['since'] = time();
@@ -157,7 +192,7 @@ class Robot extends SilverBotPlugin {
 	{
 		$difference = $timestamp;
 		
-		$periods = array("s", "m", "h", "d", "w", "m", "y", "d");
+		$periods = array("s", "m", "h", "d", "w", "M", "Y", "D");
 		$lengths = array("60","60","24","7","4.35","12","10");
 		for($j = 0; $difference >= $lengths[$j]; $j++)
 		{
