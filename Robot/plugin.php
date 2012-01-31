@@ -160,14 +160,14 @@ class Robot extends SilverBotPlugin {
 		
 		foreach ($this->data['urls'] as $url=>$urldata) {
 			if ($urldata['w'] < $from) continue;
+			if (isset($links[$url])) continue;
 			if ($oldest == 0) $oldest = $urldata['w'];
-			$links[$urldata['w']] = $url;
+			$links[$url] = $urldata;
 			if ($urldata['w'] < $oldest) $oldest = $urldata['w'];
 		}
 		
-		$links = array_unique($links);
-		foreach ($links as $link) {
-			$this->bot->pm($data['username'], $link);
+		foreach ($links as $url=>$link) {
+			$this->bot->pm($data['username'], date('[H:i:s] ', $link['w']) . "<{$link['u']}> $url");
 		}
 	}
 	
