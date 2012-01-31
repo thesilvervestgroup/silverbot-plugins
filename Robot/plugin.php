@@ -37,7 +37,8 @@ class Robot extends SilverBotPlugin {
 	}
 	
 	public function chn_robot($data) {
-		list($cmd, $info) = explode(' ', trim(strtolower($data['data'])), 2);
+		list($cmd, $info) = explode(' ', trim($data['data']), 2);
+		$cmd = strtolower($cmd);
 		switch ($cmd) {
 			case 'domstat':
 			case 'domstats':
