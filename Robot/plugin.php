@@ -75,7 +75,7 @@ class Robot extends SilverBotPlugin {
 			case 'find':
 			case 'link':
 			case 'search':
-				$this->pub_link(array('data' => $info));
+				$this->pub_link(array('data' => $info, 'source' => $data['source']));
 				break;
 				
 			case 'stat':
@@ -84,7 +84,7 @@ class Robot extends SilverBotPlugin {
 				$users = $domains = array();
 				$links = $oldest = 0;
 			
-				if (isset($this->data['urls'][$channel]) foreach ($this->data['urls'][$channel] as $u=>$url) {	
+				if (isset($this->data['urls'][$channel])) foreach ($this->data['urls'][$channel] as $u=>$url) {	
 					if ($oldest == 0) $oldest = $url['w'];
 					$users[$url['u']]++;
 					$u = parse_url($u);
@@ -113,6 +113,21 @@ class Robot extends SilverBotPlugin {
 				
 					$this->bot->reply("Number of links in ROBOT cache: $links");
 					$this->bot->reply("$most_user has submitted the most links with $most_links");
+				}
+				break;
+				
+			// special ones
+			case 'save':
+				$this->save();
+				$this->bot->reply('ROBOT cache saved to disk');
+				break;
+				
+			case 'reset':
+				if ($this->bot->Auth->hasAccess($data['user_host'])) {
+					$this->reset();
+					$this->bot->pm($data['username'], 'ROBOT cache emptied!');
+				} else {
+					$this->bot->pm($data['username'], "I don't think so, Tim");
 				}
 				break;
 		}
@@ -160,9 +175,26 @@ class Robot extends SilverBotPlugin {
 		$links = array();
 		$channel = $data['source'];
 		$oldest = 0;
-		$from = time() - 86400; // rolling 24 hour window
 		
-		if (isset($this->data['urls'][$channel]) foreach ($this->data['urls'][$channel] as $url=>$urldata) {
+		// by default, give a 24 hour rolling window
+		$from = time() - 86400;
+		if (strlen($data['data'])) switch (strtolower($data['data'])) {
+			case 'last': // since the user last did !links
+				if (isset($this->data['lastlinks'][$channel][$data['username']]))
+					$from = $this->data['lastlinks'][$channel][$data['username']]; // holy crap
+				break;
+			
+			default: // specify between 0 and 24 hours ago
+				$hours = (int)$data['data'];
+				if (is_integer($hours) && $hours > 0 && $hours < 24)
+					$from = time() - ($hours * 60 * 60);
+				break;
+		}
+
+		$this->data['lastlinks'][$channel][$data['username']] = time();
+		$this->bot->pm($data['username'], "Latest links from " . $this->ago(time() - $from) . " ago");
+		
+		if (isset($this->data['urls'][$channel])) foreach ($this->data['urls'][$channel] as $url=>$urldata) {
 			if ($urldata['w'] < $from) continue;
 			if (isset($links[$url])) continue;
 			if ($oldest == 0) $oldest = $urldata['w'];
