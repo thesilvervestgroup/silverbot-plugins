@@ -15,19 +15,20 @@ class Robot extends SilverBotPlugin {
 
 	public function chn($data) {
 		$regex = '#\b(([\w-]+://?|www[.])[^\s()<>]+(?:\([\w\d]+\)|([^[:punct:]\s]|/)))#';
+		$channel = $data['source'];
 		if (preg_match($regex, $data['text'], $matches)) {
 			$url = $matches[1];
 			// url was found
-			if (@isset($this->data['urls'][$url])) {
-				$info = $this->data['urls'][$url];
+			if (@isset($this->data['urls'][$channel][$url])) {
+				$info = $this->data['urls'][$channel][$url];
 				$diff = time() - $info['w'];
 				$str = "ROBOT (".$this->ago($diff)." by " . $info['u'] . ")";
 				// roboto
-				if (!isset($this->data['muted'][$data['source']]) || $this->data['muted'][$data['source']] != true)
+				if (!isset($this->data['muted'][$channel]) || $this->data['muted'][$channel] != true)
 					$this->bot->reply($str);
 			} else {
-				$this->data['urls'][$url]['w'] = time();
-				$this->data['urls'][$url]['u'] = $data['username'];
+				$this->data['urls'][$channel][$url]['w'] = time();
+				$this->data['urls'][$channel][$url]['u'] = $data['username'];
 			}
 		}
 
@@ -39,11 +40,12 @@ class Robot extends SilverBotPlugin {
 	public function chn_robot($data) {
 		list($cmd, $info) = explode(' ', trim($data['data']), 2);
 		$cmd = strtolower($cmd);
+		$channel = $data['source'];
 		switch ($cmd) {
 			case 'domstat':
 			case 'domstats':
 				$domains = array();
-				foreach ($this->data['urls'] as $url=>$urldata) {
+				foreach ($this->data['urls'][$channel] as $url=>$urldata) {
 					$url = parse_url($url);
 					$domains[$url['host']]++;
 				}
@@ -59,15 +61,15 @@ class Robot extends SilverBotPlugin {
 				break;
 				
 			case 'off':
-				$this->data['muted'][$data['source']] = true;
+				$this->data['muted'][$channel] = true;
 				$this->save();
-				$this->bot->reply("Muted ROBOT for {$data['source']}");
+				$this->bot->reply("Muted ROBOT for $channel");
 				break;
 				
 			case 'on':
-				$this->data['muted'][$data['source']] = false;
+				$this->data['muted'][$channel] = false;
 				$this->save();
-				$this->bot->reply("Now ROBOT'ing for {$data['source']}");
+				$this->bot->reply("Now ROBOT'ing for $channel");
 				break;
 			
 			case 'find':
@@ -82,7 +84,7 @@ class Robot extends SilverBotPlugin {
 				$users = $domains = array();
 				$links = $oldest = 0;
 			
-				foreach ($this->data['urls'] as $u=>$url) {	
+				if (isset($this->data['urls'][$channel]) foreach ($this->data['urls'][$channel] as $u=>$url) {	
 					if ($oldest == 0) $oldest = $url['w'];
 					$users[$url['u']]++;
 					$u = parse_url($u);
@@ -118,6 +120,7 @@ class Robot extends SilverBotPlugin {
 	
 	public function pub_link($data) {
 		$s = $data['data'];
+		$channel = $data['source'];
 
 		// make it regex'd
 		$from = array('0','1','2','3','4','5','6','7','8','9','/','+','*','.','$','^',' ');
@@ -125,7 +128,7 @@ class Robot extends SilverBotPlugin {
 		$s = str_replace($from, $to, $s);
 		$s = '/.*' . $s . '.*/i';
 		
-		$links = array_keys($this->data['urls']);
+		$links = array_keys($this->data['urls'][$channel]);
 		$matched = array();
 		foreach ($links as $link) {
 			if (preg_match($s, $link, $matches) == true) {
@@ -136,13 +139,13 @@ class Robot extends SilverBotPlugin {
 		if (count($matched)) {
 			$this->bot->reply("Most recent links matching '{$data['data']}'");
 			foreach ($matched as $url) {
-				$times[$url] = $this->data['urls'][$url]['w'];
+				$times[$url] = $this->data['urls'][$channel][$url]['w'];
 			}
 			
 			arsort($times);
 			$count = 1;
 			foreach ($times as $url=>$time) {
-				$who = $this->data['urls'][$url]['u'];
+				$who = $this->data['urls'][$channel][$url]['u'];
 				$when = $this->ago(time() - $time);
 				$this->bot->reply("$who, $when: $url");
 				if (++$count == 4) break;
@@ -155,10 +158,11 @@ class Robot extends SilverBotPlugin {
 	
 	public function pub_links($data) {
 		$links = array();
+		$channel = $data['source'];
 		$oldest = 0;
 		$from = time() - 86400; // rolling 24 hour window
 		
-		foreach ($this->data['urls'] as $url=>$urldata) {
+		if (isset($this->data['urls'][$channel]) foreach ($this->data['urls'][$channel] as $url=>$urldata) {
 			if ($urldata['w'] < $from) continue;
 			if (isset($links[$url])) continue;
 			if ($oldest == 0) $oldest = $urldata['w'];
