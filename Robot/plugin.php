@@ -202,8 +202,9 @@ class Robot extends SilverBotPlugin {
 			if ($urldata['w'] < $oldest) $oldest = $urldata['w'];
 		}
 		
+		$delay = 1000; // delay by a while so it sends at a low priority
 		foreach ($links as $url=>$link) {
-			$this->bot->pm($data['username'], date('[H:i:s] ', $link['w']) . "<{$link['u']}> $url");
+			$this->bot->pm($data['username'], date('[H:i:s] ', $link['w']) . "<{$link['u']}> $url", $delay++);
 		}
 	}
 	
