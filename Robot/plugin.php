@@ -21,11 +21,13 @@ class Robot extends SilverBotPlugin {
 			// url was found
 			if (@isset($this->data['urls'][$channel][$url])) {
 				$info = $this->data['urls'][$channel][$url];
-				$diff = time() - $info['w'];
-				$str = "ROBOT (".$this->ago($diff)." by " . $info['u'] . ")";
-				// roboto
-				if (!isset($this->data['muted'][$channel]) || $this->data['muted'][$channel] != true)
-					$this->bot->reply($str);
+				if ($info['u'] != $data['username']) { // only alert if a different user robots
+					$diff = time() - $info['w'];
+					$str = "ROBOT (".$this->ago($diff)." by " . $info['u'] . ")";
+					// roboto
+					if (!isset($this->data['muted'][$channel]) || $this->data['muted'][$channel] != true)
+						$this->bot->reply($str);
+				}
 			} else {
 				$this->data['urls'][$channel][$url]['w'] = time();
 				$this->data['urls'][$channel][$url]['u'] = $data['username'];
