@@ -21,14 +21,17 @@ class Robot extends SilverBotPlugin {
 			// url was found
 			if (@isset($this->data['urls'][$channel][$url])) {
 				$info = $this->data['urls'][$channel][$url];
-				$diff = time() - $info['w'];
-				$str = "ROBOT (".$this->ago($diff)." by " . $info['u'] . ")";
-				// roboto
-				if (!isset($this->data['muted'][$channel]) || $this->data['muted'][$channel] != true)
-					$this->bot->reply($str);
+				if ($info['u'] != $data['username']) { // only alert if a different user robots
+					$diff = time() - $info['w'];
+					$str = "ROBOT (".$this->ago($diff)." by " . $info['u'] . ")";
+					// roboto
+					if (!isset($this->data['muted'][$channel]) || $this->data['muted'][$channel] != true)
+						$this->bot->reply($str);
+				}
 			} else {
 				$this->data['urls'][$channel][$url]['w'] = time();
 				$this->data['urls'][$channel][$url]['u'] = $data['username'];
+                $this->_postPin($url, $data['username']);
 			}
 		}
 
@@ -241,5 +244,28 @@ class Robot extends SilverBotPlugin {
 		$text = "$difference $periods[$j] ago";
 		return $text;
 	}
+
+    private function _postPin($sourceUrl, $from)
+    {
+        if(empty($sourceUrl) || empty($from)) return;
+
+        $url     = 'http://serv.pinppage.com/v1.0/pin';
+        $request = 'url=' . urlencode($sourceUrl) . '&from=' . urlencode($from);
+        $length  = strlen($request);
+
+        $ch = curl_init();
+
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $request);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+        $result = curl_exec($ch);
+        $ok     = curl_getinfo($ch, CURLINFO_HTTP_CODE) == 200;
+
+        curl_close($ch);
+
+        return $ok;
+    }
 }
 
