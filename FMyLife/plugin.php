@@ -19,7 +19,7 @@ class FMyLife extends SilverBotPlugin {
 		
 		foreach ($lines as $line) {
 			// ugly, but ensures that only 'your life sucks' entries get through
-			if (preg_match('/class="fmllink">(.*?) FML<\/a>.+?life sucks<\/a> \(([0-9]+?)\).+?deserved it<\/a> \(([0-9]+?)\)/', $line, $matches) !== false) {
+			if (preg_match('/class="fmllink">(.*?)<\/a>.+? FML<\/a>.+?life sucks<\/a> \(<span.+?>([0-9]+?)<\/span>\).+?deserved it<\/a> \(<span.+?>([0-9]+?)<\/span>\)/', $line, $matches) !== false) {
 				if (count($matches) == 4 && $matches[2] > $matches[3]) {
 					$this->cache[] = strip_tags(trim($matches[1]));
 				}
