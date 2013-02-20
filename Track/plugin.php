@@ -89,7 +89,7 @@ class Track extends SilverBotPlugin {
 				$result['who'] = $package['who'];
 				$result['type'] = $package['type'];
 				$result['chan'] = $package['chan'];
-                $result['latestscan'] = $scantime;
+                $result['latestscan'] = key($result['scans']);
                 $this->showStatus($number, $result);
 				$this->data[$number] = $result;
 			}
