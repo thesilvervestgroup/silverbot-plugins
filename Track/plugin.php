@@ -3,6 +3,7 @@
 class Track extends SilverBotPlugin {
     private $data = array();
     private $file = '';
+    private $allowed_trackers = array('fedex');
 
     public function __construct() {
         $this->file = $this->getDataDirectory() . 'tracking.json';
@@ -12,6 +13,10 @@ class Track extends SilverBotPlugin {
 
 	public function chn_track($data) {
 		$bits = explode(' ', $data['data']);
+		if (empty($bits) || !in_array($bits[0], $this->allowed_trackers) || empty($bits[1]) || strlen($bits[1]) < 8) {
+			$this->bot->pm($data['username'], 'Usage: !track <shipping company> <tracking number>');
+			$this->bot->pm($data['username'], 'Tracking companies currently supported: ' . join(', ', $this->allowed_trackers));
+		}
 
 		if (isset($this->data[$bits[1]])) {
 			$this->bot->reply('Already tracking that package');
