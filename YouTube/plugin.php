@@ -23,8 +23,8 @@ class YouTube extends SilverBotPlugin {
 		if (preg_match($regexp, $data['text'], $matches) != false) {
 			$url = "http://gdata.youtube.com/feeds/api/videos/". $matches[1] . "?alt=json";
 			$data = json_decode($this->curlGet($url), true);
-
-			$this->bot->reply("YouTube - {$data['entry']['title']['$t']} ({$matches[1]})");
+			if (is_array($data))
+				$this->bot->reply("YouTube - {$data['entry']['title']['$t']} ({$matches[1]})");
 		}
 	}
 	
