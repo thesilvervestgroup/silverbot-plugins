@@ -19,7 +19,11 @@ class Track extends SilverBotPlugin {
 		}
 
 		if (isset($this->data[$bits[1]])) {
-			$this->bot->reply('Already tracking that package');
+            if ($data['username'] == $this->data[$bits[1]]['who']) {
+                $this->showStatus($bits[1], $this->data[$bits[1]]);
+            } else {
+                $this->bot->reply('Already tracking that package');
+            }
 		} else {
 			$this->data[$bits[1]] = array('type' => $bits[0], 'who' => $data['username'], 'chan' => $data['source']);
 			$this->checkPackage($bits[1]);
@@ -69,18 +73,24 @@ class Track extends SilverBotPlugin {
 		}
 	}
 
+    protected function showStatus($number, $package) {
+        $this->bot->pm($package['chan'], $package['who'] . ': ' . ucfirst($package['type']) . ' package ' . $number . ' - ' . $package['status']);
+        $latestscan = current($package['scans']);
+        $scantime = key($package['scans']);
+        $this->bot->pm($package['chan'], $package['who'] . ': Latest scan: ' . $latestscan . gmdate(' @ Y-m-d H:i:s T', $scantime));
+    }
+
 	protected function checkPackage($number) {
 		$package = $this->data[$number];
 		switch ($package['type']) {
 		case 'fedex':
 			$result = $this->fedex($number);
-			if ($result['status'] != $package['status']) {
-				$this->bot->pm($package['chan'], $package['who'] . ': ' . ucfirst($package['type']) . ' package ' . $number . ' - ' . $result['status']);
-				$latestscan = current($result['scans']);
-				$this->bot->pm($package['chan'], $package['who'] . ': Latest scan: ' . $latestscan);
+			if ($result['status'] != $package['status'] || key($result['scans']) > $package['latestscan']) {
 				$result['who'] = $package['who'];
 				$result['type'] = $package['type'];
 				$result['chan'] = $package['chan'];
+                $result['latestscan'] = $scantime;
+                $this->showStatus($number, $result);
 				$this->data[$number] = $result;
 			}
 			break;
