@@ -8,7 +8,7 @@ class Track extends SilverBotPlugin {
     public function __construct() {
         $this->file = $this->getDataDirectory() . 'tracking.json';
         $this->load();
-		$this->addTimer('checkPackages', '1 minutes', array($this, 'checkPackages'));
+		$this->addTimer('checkPackages', '10 minutes', array($this, 'checkPackages'));
     }
 
 	public function chn_track($data) {
