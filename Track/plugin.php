@@ -20,7 +20,13 @@ class Track extends SilverBotPlugin {
 
 		if (isset($this->data[$bits[1]])) {
             if ($data['username'] == $this->data[$bits[1]]['who']) {
-                $this->showStatus($bits[1], $this->data[$bits[1]]);
+                if ($bits[0] == 'stop' || $bits[0] == 'delete') {
+                    unset($this->data[$number]);
+                    $this->save();
+                    $this->bot->reply("Stopped tracking '$number'");
+                } else {
+                    $this->showStatus($bits[1], $this->data[$bits[1]]);
+                }
             } else {
                 $this->bot->reply('Already tracking that package');
             }
