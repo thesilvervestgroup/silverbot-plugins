@@ -26,16 +26,18 @@ class Fukung extends SilverBotPlugin {
 		$lines = explode("\n", $data);
 		$images = array();
 		foreach ($lines as $line) {
-			if (preg_match('/href=\"http:\/\/fukung.net\/v\/(.+?)\"><img/i', $line, $matches) != false) {
-				$images[] = "http://media.fukung.net/images/" . $matches[1];
+			if (preg_match('/<img src="(.+?)"/', $line, $matches) != false) {
+				$images[] = $matches[1];
 			}
 		}
 		
 		$count = count($images);
-		if ($count) {
+		if ($count > 0) {
 			$rand = mt_rand(0, $count);
 			$image = $images[$rand];
 			$this->bot->reply("$term: $image ($rand of $count)");
+		} else {
+			$this->bot->reply("$term: no images found");
 		}
 	}
 
