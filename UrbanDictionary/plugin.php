@@ -67,7 +67,7 @@ class UrbanDictionary extends SilverBotPlugin {
 		$xpath = new DOMXPath($doc);
 
 		// get the term names for 'exact match'
-		$rows = $xpath->query('//td[@class="word"]');
+		$rows = $xpath->query('//div[@class="word"]');
 		$i = 0;
 		foreach ($rows as $node) {
 			if ($i == 0 && strtolower(trim($node->nodeValue)) != strtolower($term)) $defs['exact'] = false; // just confirm for the first result
@@ -76,7 +76,7 @@ class UrbanDictionary extends SilverBotPlugin {
 		}
 		
 		// get definitions
-		$rows = $xpath->query('//div[@class="definition"]');
+		$rows = $xpath->query('//div[@class="meaning"]');
 		$i = 0;
 		foreach ($rows as $node) {
 			list($text) = explode("\n", wordwrap(strip_tags(str_replace("\r", " ", trim($node->nodeValue))), $maxLen, "\n", true), 1);
