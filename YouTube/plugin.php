@@ -26,7 +26,7 @@ class YouTube extends SilverBotPlugin {
 			$url = "https://www.googleapis.com/youtube/v3/videos?part=snippet&id=" . urlencode($matches[1]) . "&key=" . $this->config['api_key'];
 			$data = json_decode($this->curlGet($url), true);
 
-			if (is_array($data))
+			if (is_array($data) && !empty($data['items']))
 				$this->bot->reply("YouTube - {$data['items'][0]['snippet']['title']} ({$data['items'][0]['id']})");
 		}
 	}
@@ -37,6 +37,7 @@ class YouTube extends SilverBotPlugin {
 
 		$videos = array(); $i = 0;
 		if ($data) foreach ($data->items as $entry) {
+			if ($entry->id->kind != 'youtube#video') continue;
 			$videos[$i]['id'] = $entry->id->videoId;
 			$videos[$i]['title'] = $entry->snippet->title;
 			if (++$i == 3) break;
