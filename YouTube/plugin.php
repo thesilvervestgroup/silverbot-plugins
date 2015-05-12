@@ -1,5 +1,7 @@
 <?php
-
+/**
+ * Requires API key in the config file, as api_key
+ */
 class YouTube extends SilverBotPlugin {
 
 	public function chn_youtube($data) {
@@ -21,21 +23,22 @@ class YouTube extends SilverBotPlugin {
 	public function chn($data) {
 		$regexp = '~https?://(?:[0-9A-Z-]+\.)?(?:youtu\.be/|youtube\.com\S*[^\w\-\s])([\w\-]{11})(?=[^\w\-]|$)(?![?=&+%\w]*(?:[\'"][^<>]*>| </a>))[?=&+%\w-]*~ix';
 		if (preg_match($regexp, $data['text'], $matches) != false) {
-			$url = "http://gdata.youtube.com/feeds/api/videos/". $matches[1] . "?alt=json";
+			$url = "https://www.googleapis.com/youtube/v3/videos?part=snippet&id=" . urlencode($matches[1]) . "&key=" . $this->config['api_key'];
 			$data = json_decode($this->curlGet($url), true);
+
 			if (is_array($data))
-				$this->bot->reply("YouTube - {$data['entry']['title']['$t']} ({$matches[1]})");
+				$this->bot->reply("YouTube - {$data['items'][0]['snippet']['title']} ({$data['items'][0]['id']})");
 		}
 	}
 	
 	private function searchVideo($term) {
-		$url = 'http://gdata.youtube.com/feeds/api/videos?alt=json&q=' . urlencode($term);
+		$url = "https://www.googleapis.com/youtube/v3/search?part=snippet&q=" . urlencode($term) . "&key=" . $this->config['api_key'];
 		$data = json_decode($this->curlGet($url));
 
 		$videos = array(); $i = 0;
-		if ($data) foreach ($data->feed->entry as $entry) {
-			$videos[$i]['id'] = substr($entry->id->{'$t'}, strrpos($entry->id->{'$t'}, '/')+1);
-			$videos[$i]['title'] = $entry->title->{'$t'};
+		if ($data) foreach ($data->items as $entry) {
+			$videos[$i]['id'] = $entry->id->videoId;
+			$videos[$i]['title'] = $entry->snippet->title;
 			if (++$i == 3) break;
 		}
 		
